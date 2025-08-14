@@ -70,16 +70,10 @@
   #ui{ position: relative; left: auto; top: auto; width: 100%; display:grid; gap: 14px; }
   .type-icons{ 
     display: flex; 
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap;
     gap: 10px; 
     margin-top: 10px;
     padding: 4px;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .type-icons::-webkit-scrollbar {
-    display: none;
   }
   .title-xl{ font-size: 32px; letter-spacing: -2px; }
   .title-xl{ font-weight:900; line-height:1.05; margin:0; cursor:pointer; }
@@ -88,16 +82,16 @@
   .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px 24px; align-items:center }
   .section{ display:grid; gap:10px; }
   .section h2 {
-  font-family: 'Inter Tight', sans-serif;
-  margin: 10px 0 0 0;
-  font-size: 16px;
-  font-weight: 900;
-  letter-spacing: .05em;
-}
+    font-family: 'Inter Tight', sans-serif;
+    margin: 0; /* 중앙 정렬을 위해 margin 제거 */
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: .05em;
+  }
   label{ font-size:14px; font-weight:700; }
   .ctrl{ background: var(--ctrl-bg); color: var(--ctrl-fg); width:100%; border:none; border-bottom:1px solid var(--line); padding:8px 0; outline:none; border-radius:0; transition: background .3s ease, color .3s ease; }
   select.ctrl {
-    font-size: 16px; /* 드롭다운 폰트 크기 지정 */
+    font-size: 16px;
   }
   .row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-items:center }
   input[type="range"].ctrl{ padding:0; accent-color: var(--slider-accent); }
@@ -163,8 +157,33 @@
   .glyph-horn{ border-radius:8px;}
   .glyph-horn::before{ width:18px;height:12px;border-radius:5px; border:2px solid var(--icon-fg); }
   .glyph-turbine::before{ width:18px;height:18px;border-radius:50%; background:conic-gradient(var(--icon-fg) 0 10deg, transparent 10deg 30deg, var(--icon-fg) 30deg 40deg, transparent 40deg 60deg, var(--icon-fg) 60deg 70deg, transparent 70deg 90deg); opacity:.95;}
-  .glyph-premium::before{ width:18px;height:18px;border-radius:50%; border:2px solid var(--icon-fg); }
-  .glyph-premium::after { width:6px;height:6px;border-radius:50%; background:var(--icon-fg); }
+/* === Type 13 icon — simple & clean (double circle: outer ring + small hollow ring) === */
+.glyph-premium{
+  border-radius: 50%;
+  background: var(--icon-bg);
+}
+
+/* 바깥 링: Type 1과 동일한 굵기/사이즈 */
+.glyph-premium::before{
+  content:"";
+  position:absolute; left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  width:18px; height:18px;              /* Type 1 과 동일 */
+  border-radius:50%;
+  border:2px solid var(--icon-fg);      /* 굵기/색상 동일 */
+  background:transparent;
+}
+
+/* 중앙: 점 대신 ‘작은 링’으로 간결하게 차별화 */
+.glyph-premium::after{
+  content:"";
+  position:absolute; left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  width:8px; height:8px;                /* Type 1 의 6px 점 대비 약간 크게 */
+  border-radius:50%;
+  border:2px solid var(--icon-fg);      /* 동일 굵기 */
+  background:transparent;               /* 비워둔 링(점 아님) */
+}
   .glyph-cross::before{ width:18px;height:3px;background:var(--icon-fg); }
   .glyph-cross::after { width:3px;height:18px;background:var(--icon-fg); }
   .toggle { position: relative; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer; font-weight: 700; }
@@ -189,6 +208,7 @@
     background-color: var(--toggle-slider-bg); 
     border-radius: 9999px; 
     transition: background-color 0.3s; 
+    flex-shrink: 0;
   }
   .slider::before { 
     content: ""; 
@@ -208,8 +228,14 @@
   .legal-disclaimer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); line-height: 1.5; }
   .legal-disclaimer p { margin: 0 0 1em 0; }
   .legal-disclaimer p:last-child { margin-bottom: 0; }
-  .legal-disclaimer a { color: var(--ink); text-decoration: none; transition: color .2s ease; }
-  .legal-disclaimer a:hover { color: var(--icon-sel); }
+  .legal-disclaimer a { 
+    color: var(--icon-sel); /* 모바일에서 링크 색상 강조 */
+    text-decoration: none; 
+    transition: color .2s ease; 
+  }
+  .legal-disclaimer a:hover { 
+    color: var(--icon-sel); 
+  }
   .glyph-donut { border-radius: 50%; background: var(--icon-bg); }
   .glyph-donut::before{ width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--icon-fg); }
   .glyph-donut::after { width: 8px; height: 8px; border-radius: 50%; background: var(--icon-bg); box-shadow: 0 0 0 2px var(--icon-fg); }
@@ -249,7 +275,6 @@
       padding: 0;
     }
 
-    /* PC/태블릿용 토글 크기를 원래대로 복원 (올바른 위치로 수정) */
     .slider {
       width: 44px;
       height: 24px;
@@ -260,6 +285,10 @@
     }
     input:checked + .slider::before {
       transform: translateX(20px);
+    }
+    
+    .legal-disclaimer a {
+      color: var(--ink); /* PC에서는 기본 텍스트 색상으로 복원 */
     }
   }
 
@@ -278,7 +307,7 @@
  <div id="wrap">
     <div class="title-header">
       <h1 class="title-xl" id="homeTitle">
-        homer <span class="outlined-text">radio</span><sup class="reg-mark" style="font-size: 0.4675em;">®</sup><br><span class="highlight-text">Image</span> Generator
+        homer <span class="outlined-text">radio</span><sup class="reg-mark" style="font-size: 0.4675em;">®</sup><br><span class="highlight-text">Image</span>&nbsp;Generator
       </h1>
       <div id="theme-toggle-container">
         <label class="toggle">
