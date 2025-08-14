@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="utf-8" />
+  <title>Homer Radio Image Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Generate Homer Radio–style images in your browser. Open-source by Téo Kim." />
+
+  <!-- Favicon (thumb.jpg as tab icon) -->
+  <link rel="icon" type="image/jpeg" href="./thumb.jpg">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://teokim8.github.io/Homer-Radio-Image-Generator/">
+  <meta property="og:title" content="Homer Radio Image Generator">
+  <meta property="og:description" content="Generate Homer Radio–style images in your browser. Open-source by Téo Kim.">
+  <meta property="og:image" content="https://teokim8.github.io/Homer-Radio-Image-Generator/thumb.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://teokim8.github.io/Homer-Radio-Image-Generator/">
+  <meta name="twitter:title" content="Homer Radio Image Generator">
+  <meta name="twitter:description" content="Generate Homer Radio–style images in your browser. Open-source by Téo Kim.">
+  <meta name="twitter:image" content="https://teokim8.github.io/Homer-Radio-Image-Generator/thumb.jpg">
+<style>
+  :root{
+    /* Light/Dark Mode Color Variables */
+    /* Default is Dark Mode */
+    --bg-color: #000; --ink: #fff; --muted: #ffffff88; --line: #ffffff33; --ctrl-bg: #000; --ctrl-fg: #fff; --btn-hover-border: #fff; --outlined-stroke: #fff; --checkbox-accent: #888888; --toggle-slider-bg: #ccc; --toggle-slider-bg-checked: #95ff00; --toggle-slider-thumb: #fff; --panel-bg: transparent; --icon-bg: #ffffff; --icon-fg: #000000; --icon-sel: #95ff00; --slider-accent: #dadada;
+  }
+  body.light-mode {
+    --bg-color: #F2F1F0; --ink: #000; --muted: #00000088; --line: #00000022; --ctrl-bg: #F2F1F0; --ctrl-fg: #000; --btn-hover-border: #000; --outlined-stroke: #000; --checkbox-accent: #555555; --toggle-slider-bg-checked: #00B25E; --icon-sel: #00B25E; --icon-bg: #000000; --icon-fg: #ffffff; --slider-accent: #333333;
+  }
+  html { height: 100%; }
+  body { min-height: 100%; margin: 0; background: var(--bg-color); color: var(--ink); font-family: "Helvetica Neue", Helvetica, "Arial Black", Arial, ui-sans-serif, system-ui, sans-serif; transition: background .3s ease, color .3s ease; -webkit-user-select: none; -ms-user-select: none; user-select: none; }
+  #theme-toggle-container { position: absolute; top: 16px; right: 16px; z-index: 100; }
+  #theme-toggle-container .toggle-label { font-size: 12px; }
+  #wrap{ display: flex; flex-direction: column; padding: 16px; gap: 20px; min-height: 100%; box-sizing: border-box; position: relative; }
+  h1.title-xl { order: 1; padding-top: 32px; }
+  #stage{ order: 2; }
+  #ui { order: 3; }
+  #stage{ width: 100%; height: auto; display: flex; justify-content: center; align-items: center; }
+  canvas{ box-shadow:0 10px 40px rgba(0,0,0,.4); border-radius:0; max-width: 100%; height: auto !important; cursor: default; }
+  canvas.custom-mode { cursor: grab; }
+  #ui{ position: relative; left: auto; top: auto; width: 100%; display:grid; gap: 14px; }
+  .type-icons{ display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .title-xl{ font-size: 32px; letter-spacing: -2px; }
+  @media (min-width: 768px) {
+    #theme-toggle-container { top: 24px; right: 24px; }
+    #wrap{ display: grid; grid-template-rows: auto 1fr; grid-template-columns: 300px 1fr; align-items: flex-start; gap: 0 24px; padding: 24px; }
+    h1.title-xl { order: unset; grid-column: 1 / 2; grid-row: 1 / 2; padding-bottom: 24px; padding-top: 0; }
+    #ui { order: unset; grid-column: 1 / 2; grid-row: 2 / 3; width: 100%; position: sticky; top: 24px; }
+    #stage { order: unset; grid-column: 2 / 3; grid-row: 1 / 3; align-self: start; }
+    .title-xl{ font-size: 36px; letter-spacing: -2.5px; }
+    .type-icons{ display: grid; grid-template-columns: repeat(auto-fill, minmax(30px, 1fr)); }
+  }
+  @media (min-width: 1200px) {
+    #theme-toggle-container { top: 32px; right: 32px; }
+    #wrap{ grid-template-columns: 340px 1fr; gap: 0 120px; padding: 32px; }
+    .title-xl{ font-size: 40px; letter-spacing: -3px; }
+    .type-icons{ display:grid; grid-template-columns: repeat(10, 30px); gap:10px; margin-top:20px; }
+  }
+  .title-xl{ font-weight:900; line-height:1.05; margin:0; cursor:pointer; }
+  .title-xl .reg-mark{ font-weight:900; vertical-align:text-top; margin-left:2px; letter-spacing:0; opacity:.9; display:inline-block; transform:translateY(-0.06em); }
+  .divider{ height:1px; background:var(--line); margin:10px 0; }
+  .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px 24px; align-items:center }
+  .section{ display:grid; gap:10px; }
+  .section h2{ margin:10px 0 0 0; font-size:16px; font-weight:800; letter-spacing:.02em; }
+  label{ font-size:14px; font-weight:700; }
+  .ctrl{ background: var(--ctrl-bg); color: var(--ctrl-fg); width:100%; border:none; border-bottom:1px solid var(--line); padding:8px 0; outline:none; border-radius:0; transition: background .3s ease, color .3s ease; }
+  .row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-items:center }
+  input[type="range"].ctrl{ padding:0; accent-color: var(--slider-accent); }
+  input[type="color"].ctrl{ height:24px; padding:0; border:0; border-radius:9999px; width:100%; }
+  .row-2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-items:center; }
+  .checkbox{ display:flex; gap:10px; align-items:center; font-weight:700 }
+  .checkbox input{ width:16px; height:16px }
+  .btn{ background: var(--ctrl-bg); color: var(--ctrl-fg); border:1px solid var(--line); padding:10px 12px; border-radius:10px; font-weight:800; letter-spacing:.01em; cursor:pointer; transition: background .3s ease, color .3s ease, border-color .2s ease, box-shadow .2s ease; }
+  .btn:hover{ border-color:var(--btn-hover-border); }
+  .btn.btn-full { width: 100%; }
+  .btn.active { background: var(--icon-sel); color: #000; border-color: var(--icon-sel); box-shadow: 0 0 0 2px color-mix(in srgb, var(--icon-sel) 40%, transparent); }
+  .hint{ font-size:12px; color:var(--muted); }
+  .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px; background:#fff }
+  .type-icon{ width:30px; height:30px; position:relative; background:var(--icon-bg); border:1px solid #ffffff22; border-radius:50%; cursor:pointer; opacity:.9; transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .3s ease; }
+  .type-icon:hover{ transform:translateY(-1px); box-shadow:0 2px 8px rgba(0,0,0,.35); }
+  .type-icon.is-selected{ border-color:var(--icon-sel); box-shadow:0 0 0 2px color-mix(in srgb, var(--icon-sel) 40%, transparent); }
+  .type-icon::before,
+  .type-icon::after{ content:""; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); box-sizing:border-box; transition: background .3s ease, border-color .3s ease; }
+  .glyph-round::before{ width:18px;height:18px;border-radius:50%; border:2px solid var(--icon-fg); }
+  .glyph-round::after { width:6px; height:6px; border-radius:50%; background:var(--icon-fg); }
+  .glyph-sqround{ border-radius:8px; }
+  .glyph-sqround::before{ width:20px;height:20px;border-radius:50%; border:2px solid var(--icon-fg); }
+  .glyph-donut::before{ width:18px;height:18px;border-radius:50%; border:2px solid var(--icon-fg); }
+  .glyph-donut::after { width:9px;height:9px;border-radius:50%; background:var(--icon-bg); border:2px solid var(--icon-fg); }
+  .glyph-octa{ clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%); }
+  .glyph-octa::before{ width:18px;height:18px;border-radius:50%; border:2px solid var(--icon-fg); }
+  .glyph-rings::before{ width:20px;height:20px;border-radius:50%; border:2px solid var(--icon-fg); }
+  .glyph-rings::after { width:12px;height:12px;border-radius:50%; border:2px solid var(--icon-fg); }
+  .glyph-screws::before{ width:18px;height:18px;border-radius:50%; border:2px solid var(--icon-fg); box-shadow: -9px -9px 0 -8px var(--icon-fg), 9px -9px 0 -8px var(--icon-fg), 9px 9px 0 -8px var(--icon-fg), -9px 9px 0 -8px var(--icon-fg); }
+  .glyph-grid::before{ width:18px;height:18px;border-radius:50%; border:2px dotted var(--icon-fg); opacity:.9; }
+  .outlined-text { -webkit-text-fill-color: transparent; -webkit-text-stroke: 1px var(--outlined-stroke); transition: -webkit-text-stroke .3s ease; }
+  .highlight-text { color: var(--icon-sel); transition: color .3s ease; }
+  .glyph-tri::before{ width:18px;height:18px; background: conic-gradient(from 0deg, var(--icon-fg) 0 6deg, transparent 6deg 120deg, var(--icon-fg) 120deg 126deg, transparent 126deg 240deg, var(--icon-fg) 240deg 246deg, transparent 246deg 360deg); border-radius:50%; opacity:.9; }
+  .glyph-disc::before{ width:18px;height:18px;border-radius:50%; border:2px solid var(--icon-fg); }
+  .glyph-disc::after { width:3px;height:3px;border-radius:50%; background:var(--icon-fg); box-shadow: 0 -7px 0 0 var(--icon-fg), 0 7px 0 0 var(--icon-fg), -7px 0 0 0 var(--icon-fg), 7px 0 0 0 var(--icon-fg); }
+  .glyph-tweeter::before{ width:18px;height:18px;border-radius:50%; border:2px solid var(--icon-fg);}
+  .glyph-tweeter::after { width:8px;height:8px;border-radius:50%; background:var(--icon-fg); }
+  .glyph-horn{ border-radius:8px;}
+  .glyph-horn::before{ width:18px;height:12px;border-radius:5px; border:2px solid var(--icon-fg); }
+  .glyph-turbine::before{ width:18px;height:18px;border-radius:50%; background:conic-gradient(var(--icon-fg) 0 10deg, transparent 10deg 30deg, var(--icon-fg) 30deg 40deg, transparent 40deg 60deg, var(--icon-fg) 60deg 70deg, transparent 70deg 90deg); opacity:.95;}
+  .glyph-premium::before{ width:18px;height:18px;border-radius:50%; border:2px solid var(--icon-fg); }
+  .glyph-premium::after { width:6px;height:6px;border-radius:50%; background:var(--icon-fg); }
+  .glyph-cross::before{ width:18px;height:3px;background:var(--icon-fg); }
+  .glyph-cross::after { width:3px;height:18px;background:var(--icon-fg); }
+  .toggle { position: relative; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer; font-weight: 700; }
+  .toggle-label { font-size: 14px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider { position: relative; width: 44px; height: 24px; background-color: var(--toggle-slider-bg); border-radius: 9999px; transition: background-color 0.3s; }
+  .slider::before { content: ""; position: absolute; height: 20px; width: 20px; left: 2px; top: 2px; background-color: var(--toggle-slider-thumb); border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  input[type="checkbox"] { accent-color: var(--checkbox-accent); }
+  .toggle input:checked + .slider { background-color: var(--toggle-slider-bg-checked); }
+  .toggle input:checked + .slider::before { transform: translateX(20px); }
+  .legal-disclaimer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .legal-disclaimer p { margin: 0 0 1em 0; }
+  .legal-disclaimer p:last-child { margin-bottom: 0; }
+  .legal-disclaimer a { color: var(--ink); text-decoration: none; transition: color .2s ease; }
+  .legal-disclaimer a:hover { color: var(--icon-sel); }
+  .glyph-donut { border-radius: 50%; background: var(--icon-bg); }
+  .glyph-donut::before{ width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--icon-fg); }
+  .glyph-donut::after { width: 8px; height: 8px; border-radius: 50%; background: var(--icon-bg); box-shadow: 0 0 0 2px var(--icon-fg); }
+  .glyph-rings::before{ width: 18px; height: 18px; border-radius: 50%; box-sizing: border-box; border: 2px solid var(--icon-fg); }
+  .glyph-rings::after { width: 12px; height: 12px; border-radius: 50%; box-sizing: border-box; border: 2px solid var(--icon-fg); }
+  .glyph-hex { border-radius: 8px; }
+  .glyph-hex::before { width: 20px; height: 2px; background: var(--icon-fg); }
+  .glyph-hex::after { width: 2px; height: 20px; background: var(--icon-fg); }
+  .row-full { display:grid; grid-template-columns: 1fr; gap:12px; }
+  .btn-save { width:100%; }
+  .btn-save:hover { border-color: var(--btn-hover-border); }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.9.3/lib/p5.min.js"></script>
+</head>
+<body>
+
+  <div id="wrap">
+    <div id="theme-toggle-container">
+      <label class="toggle">
+        <span class="toggle-label">Blonde</span>
+        <input id="themeToggle" type="checkbox">
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <h1 class="title-xl" id="homeTitle">
+      homer <span class="outlined-text">radio</span><sup class="reg-mark" style="font-size: 0.4675em;">®</sup><br><span class="highlight-text">Image</span> Generator
+    </h1>
+    
+    <div id="stage"></div>
+    <div id="ui">
+      <div class="section">
+        <div class="divider"></div>
+        <div class="grid-2">
+          <h2>Key Color</h2>
+          <input id="key" class="ctrl" type="color" value="#888888"/>
+        </div>
+        <div class="grid-2">
+          <h2>Types</h2>
+          <select id="typeSel" class="ctrl">
+            <option value="-1" selected>Random</option>
+          </select>
+        </div>
+        <div id="typeIcons" class="type-icons"></div>
+      </div>
+
+      <div class="section">
+        <div class="divider"></div>
+        <div class="grid-2">
+          <h2>Layout</h2>
+          <h2>Count: <span id="count-display">9</span></h2>
+          <select id="layout" class="ctrl">
+            <option value="cross" selected>Cross</option>
+            <option value="central">Central</option>
+            <option value="triangle">Triangle</option>
+            <option value="grid">Grid</option>
+            <option value="tshape">T Shape</option>
+            <option value="circle">Circle</option>
+            <option value="lineH">Horizontal Line</option>
+            <option value="lineV">Vertical Line</option>
+            <option value="wave">Wave</option>
+            <option value="eleven">Eleven</option>
+            <option value="random">Random</option>
+          </select>
+          <input id="count" class="ctrl" type="range"/>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="divider"></div>
+        <div class="grid-2">
+          <h2>Complexity</h2>
+          <h2>Speaker Size</h2>
+          <input id="complex" class="ctrl" type="range" min="1" value="8"/>
+          <input id="gscale" class="ctrl" type="range" min="30" max="100" value="85"/>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="divider"></div>
+        <div class="grid-2">
+          <label class="toggle">
+            <span class="toggle-label">Black Background</span>
+            <input id="canvasDark" type="checkbox">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle">
+            <span class="toggle-label">Glow Effect</span>
+            <input id="glow" type="checkbox" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="grid-2">
+          <label class="toggle">
+            <span class="toggle-label">Vertical Symmetric</span>
+            <input id="symV" type="checkbox">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle">
+            <span class="toggle-label">Horizontal Symmetric</span>
+            <input id="symH" type="checkbox">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="divider"></div>
+        <div class="row-2">
+          <button id="customize" class="btn btn-customize" aria-keyshortcuts="C">Customize (C)</button>
+          <button id="randomize" class="btn" aria-keyshortcuts="R">Randomize (R)</button>
+        </div>
+        <div class="row-full">
+          <button id="save" class="btn btn-save" aria-keyshortcuts="S">Export PNG (S)</button>
+        </div>
+        <div class="hint mono">Press C to Customize • R to Randomize • S to Export PNG</div>
+      </div>
+
+      <div class="legal-disclaimer">
+        <p>V1.0, August, 2025<br>Designed by <a href="https://teokim.xyz/" target="_blank">Téo Kim</a></p>
+        <p><a href="https://github.com/teokim8/Homer-Radio-Image-Generator" target="_blank">This project is an open-source personal project.<br>
+           Anyone may access, modify, and redistribute the code via GitHub.</a><br>
+           All modifications and redistributions must include this Disclaimer.<br>
+           Commercial use is prohibited.</p>
+        <p>Inspired by <a href="https://music.apple.com/us/curator/homer-radio/1620058858" target="_blank">Homer Radio™ by Frank Ocean</a>, <a href="https://www.instagram.com/timlindacher/?hl=en" target="_blank">Tim Lindacher</a>, and <a href="https://www.instagram.com/jannimaroscheck/?hl=en" target="_blank">Jannis Maroscheck</a>.</p>
+        <p>All trademarks and copyrights belong to their respective owners.<br>
+           This project is provided “as is” without any warranty.<br>
+           The copyright holder and contributors shall not be liable for any damages resulting from the use of this project.</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ==================== STATE ==================== */
+let keyColor = '#888888';
+let speakerCount = 9;
+let complexity = 8;
+let layoutMode = 'cross';
+let globalScalePct = 85;
+let canvasBlack = false;
+let glowEnabled = true;
+let seed;
+let selectedTypeIndex = -1;
+let verticalSym = false;
+let horizontalSym = false;
+let isCustomizeMode = false;
+let speakerData = [];
+let draggedSpeaker = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+let p5Canvas;
+
+const layoutCountMap = {
+  central:  { min: 1,  default: 25, baseMax: 150 },
+  cross:    { steps: [1, 5, 9, 13, 17, 21, 25], default: 9 },
+  triangle: { steps: [3, 6, 10, 15, 21, 28, 36], default: 10 },
+  grid:     { steps: [4, 9, 16, 25, 36, 49, 64, 81], default: 16 },
+  tshape:   { min: 3,  default: 15, baseMax: 50 },
+  circle:   { min: 5,  default: 15, baseMax: 60 },
+  lineH:    { min: 2,  default: 7,  baseMax: 30 },
+  lineV:    { min: 2,  default: 5,  baseMax: 30 },
+  wave:     { min: 5,  default: 15, baseMax: 60 },
+  eleven:   { min: 2,  default: 12, baseMax: 40 },
+  random:   { min: 1,  default: 20, baseMax: 100 }
+};
+
+const TAU = Math.PI * 2;
+const HALF_PI_SAFE = Math.PI / 2;
+
+/* ==================== SETUP & RESPONSIVE HANDLING ==================== */
+function setup(){
+  seed = Math.floor(Math.random()*1e9);
+  p5Canvas = createCanvas(100, 100).parent('stage');
+  pixelDensity(2);
+  noLoop();
+  attachUI();
+  rebuildTypeOptions();
+  buildTypeIcons();
+  updateCanvasSize();
+}
+
+function windowResized() {
+  updateCanvasSize();
+}
+
+function updateCanvasSize() {
+  const stageEl = document.getElementById('stage');
+  const stageWidth = stageEl.offsetWidth;
+  const stageHeight = windowHeight;
+  const padding = 48;
+  const size = Math.max(200, Math.min(stageWidth, stageHeight) - padding);
+  resizeCanvas(size, size);
+  if (!isCustomizeMode) {
+    redraw();
+  } else {
+    renderSpeakers();
+  }
+}
+
+function attachUI() {
+  const keyEl = document.getElementById('key');
+  const typeSel = document.getElementById('typeSel');
+  const layoutEl = document.getElementById('layout');
+  const countEl = document.getElementById('count');
+  const complexEl = document.getElementById('complex');
+  const gscaleEl = document.getElementById('gscale');
+  const darkEl = document.getElementById('canvasDark');
+  const glowEl = document.getElementById('glow');
+  const vSymEl = document.getElementById('symV');
+  const hSymEl = document.getElementById('symH');
+  const themeToggle = document.getElementById('themeToggle');
+  const customizeBtn = document.getElementById('customize');
+  const countDisplay = document.getElementById('count-display');
+  
+  let currentSteps = [];
+
+  complexEl.max = allTypes().length;
+
+  function updateCountUI(newCountValue) {
+      const config = layoutCountMap[layoutMode];
+      if (!config) return;
+
+      let finalCount;
+      if (config.steps) {
+          const newIndex = Math.min(newCountValue, currentSteps.length - 1);
+          countEl.value = newIndex;
+          finalCount = currentSteps[newIndex];
+      } else {
+          const newV = Math.min(newCountValue, parseInt(countEl.max, 10));
+          countEl.value = newV;
+          finalCount = newV;
+      }
+      
+      speakerCount = finalCount || (config.steps ? currentSteps[0] : config.min);
+      countDisplay.textContent = speakerCount;
+  }
+  
+  document.getElementById('homeTitle').onclick = () => location.reload();
+  
+  keyEl.oninput = e => { keyColor = e.target.value; redraw(); };
+  typeSel.oninput = e => {
+    selectedTypeIndex = parseInt(e.target.value, 10);
+    updateTypeIconSelection();
+    redraw();
+  };
+  layoutEl.oninput = e => {
+    layoutMode = e.target.value;
+    gscaleEl.value = 85; 
+    globalScalePct = 85;
+    gscaleEl.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  countEl.oninput = e => {
+    updateCountUI(parseInt(e.target.value, 10));
+    redraw();
+  };
+  complexEl.oninput = e => {
+    complexity = parseInt(e.target.value, 10);
+    if (speakerCount < complexity) {
+        const config = layoutCountMap[layoutMode];
+        if (config.steps) {
+            const suitableStep = currentSteps.find(step => step >= complexity);
+            if (suitableStep) {
+                updateCountUI(currentSteps.indexOf(suitableStep));
+            }
+        } else {
+            const newCount = Math.min(complexity, parseInt(countEl.max));
+            updateCountUI(newCount);
+        }
+    }
+    redraw();
+  };
+  gscaleEl.oninput = e => {
+    globalScalePct = parseInt(e.target.value, 10);
+    const config = layoutCountMap[layoutMode];
+    if (!config) return;
+
+    let newMaxCount;
+
+    // --- 레이아웃별 최대 카운트 계산 로직 ---
+    
+    // 선형 보간(map)을 위한 헬퍼 함수
+    const map = (val, s1, e1, s2, e2) => s2 + (e2 - s2) * ((val - s1) / (e1 - s1));
+    const sliderMin = 30;
+    const sliderMax = 100;
+
+    // 레이아웃에 따라 다른 카운트 범위를 적용
+    switch (layoutMode) {
+        case 'circle':
+            // 목표: 사이즈 [30, 100] -> 카운트 [44, 12]
+            newMaxCount = Math.round(map(globalScalePct, sliderMin, sliderMax, 44, 12));
+            break;
+
+        case 'lineH':
+        case 'lineV':
+            // 목표: 사이즈 [30, 100] -> 카운트 [30, 6]
+            newMaxCount = Math.round(map(globalScalePct, sliderMin, sliderMax, 30, 6));
+            break;
+
+        case 'tshape':
+            // 목표: 사이즈 [30, 100] -> 카운트 [50, 9]
+            newMaxCount = Math.round(map(globalScalePct, sliderMin, sliderMax, 50, 9));
+            break;
+
+        default:
+            // 그 외 다른 레이아웃들은 기존의 power/scaleFactor 로직을 그대로 사용합니다.
+            const is1D = ['wave', 'eleven', 'cross'].includes(layoutMode);
+            const power = is1D ? 1.1 : 1.8;
+            const baseGScale = 75;
+            const scaleFactor = Math.pow(baseGScale / globalScalePct, power);
+            
+            const maxFromConfig = config.baseMax || config.steps[config.steps.length - 1];
+            newMaxCount = Math.ceil(maxFromConfig * scaleFactor);
+            break;
+    }
+
+    // --- UI 업데이트 로직 (기존과 동일) ---
+
+    if (config.steps) {
+        currentSteps = config.steps.filter(step => step <= newMaxCount);
+        if (currentSteps.length === 0) currentSteps.push(config.steps[0]);
+
+        countEl.min = 0;
+        countEl.max = currentSteps.length - 1;
+
+        const closestStep = currentSteps.reduce((prev, curr) =>
+            (Math.abs(curr - speakerCount) < Math.abs(prev - speakerCount) ? curr : prev)
+        );
+        updateCountUI(currentSteps.indexOf(closestStep));
+    } else {
+        countEl.min = config.min;
+        countEl.max = Math.max(config.min + 1, newMaxCount);
+        updateCountUI(Math.min(speakerCount, parseInt(countEl.max)));
+    }
+    redraw();
+};
+  
+  darkEl.oninput = e => { canvasBlack = e.target.checked; redraw(); };
+  glowEl.oninput = e => { glowEnabled = e.target.checked; redraw(); };
+  vSymEl.oninput = e => { verticalSym = e.target.checked; redraw(); };
+  hSymEl.oninput = e => { horizontalSym = e.target.checked; redraw(); };
+  
+  themeToggle.oninput = e => { document.body.classList.toggle('light-mode', e.target.checked); };
+  // attachUI 함수 내부
+customizeBtn.onclick = () => {
+    isCustomizeMode = !isCustomizeMode;
+    customizeBtn.classList.toggle('active', isCustomizeMode);
+    p5Canvas.elt.classList.toggle('custom-mode', isCustomizeMode);
+    
+    if (!isCustomizeMode) {
+        // 커스터마이즈 모드를 끌 때는 드래그 상태만 초기화합니다.
+        draggedSpeaker = null;
+    }
+    // redraw() 호출을 제거하여, 사용자가 수정한 위치를 그대로 유지시킵니다.
+};
+  document.getElementById('randomize').onclick = () => {
+    disableCustomizeMode();
+    seed = Math.floor(Math.random() * 1e9);
+    
+    const layouts = Object.keys(layoutCountMap);
+    layoutMode = layouts[Math.floor(Math.random() * layouts.length)];
+    layoutEl.value = layoutMode;
+    
+    globalScalePct = Math.floor(Math.random() * (100 - 30 + 1)) + 30;
+    gscaleEl.value = globalScalePct;
+    gscaleEl.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const config = layoutCountMap[layoutMode];
+    if (config.steps) {
+        const randomIndex = Math.floor(Math.random() * currentSteps.length);
+        countEl.value = randomIndex;
+        speakerCount = currentSteps[randomIndex];
+    } else {
+        const min = parseInt(countEl.min);
+        const max = parseInt(countEl.max);
+        const randomCount = Math.floor(Math.random() * (max - min + 1)) + min;
+        countEl.value = randomCount;
+        speakerCount = randomCount;
+    }
+    countDisplay.textContent = speakerCount;
+
+    const vals = [0, 255];
+    const r = random(vals); const g = random(vals); const b = random(vals);
+    keyColor = `rgb(${r},${g},${b})`;
+    const hex = '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+    keyEl.value = hex;
+
+    complexity = Math.floor(Math.random() * (allTypes().length - 1 + 1)) + 1;
+    complexEl.value = complexity;
+
+    redraw();
+  };
+  document.getElementById('save').onclick = () => saveCanvas('speakers_' + Date.now(), 'png');
+  
+  gscaleEl.dispatchEvent(new Event('input'));
+  
+  const allControls = document.querySelectorAll('.ctrl, .type-icon, .btn');
+  allControls.forEach(ctrl => {
+    if(ctrl.id !== 'customize') {
+      const eventType = ctrl.matches('input[type="range"]') ? 'input' : 'click';
+      ctrl.addEventListener(eventType, disableCustomizeMode);
+    }
+  });
+}
+
+function disableCustomizeMode() { if (isCustomizeMode) { isCustomizeMode = false; document.getElementById('customize').classList.remove('active'); p5Canvas.elt.classList.remove('custom-mode'); draggedSpeaker = null; } }
+function rebuildTypeOptions(){ const typeSel = document.getElementById('typeSel'); const types = allTypes(); const prev = selectedTypeIndex; typeSel.innerHTML = '<option value="-1">Random</option>' + types.map((_,i)=>`<option value="${i}">Type ${i+1}</option>`).join(''); if(prev>=0 && prev<types.length){ typeSel.value = String(prev); selectedTypeIndex = prev; } else { typeSel.value='-1'; selectedTypeIndex=-1; } }
+function buildTypeIcons(){
+  const holder = document.getElementById('typeIcons');
+  holder.innerHTML = '';
+  const types = allTypes();
+  const glyphClasses = [ 'glyph-round','glyph-sqround','glyph-donut','glyph-octa','glyph-rings', 'glyph-screws','glyph-grid','glyph-tri','glyph-disc','glyph-tweeter', 'glyph-horn','glyph-turbine','glyph-premium','glyph-hex','glyph-cross' ];
+  types.forEach((_, i)=>{
+    const el = document.createElement('div');
+    el.className = `type-icon ${glyphClasses[i]||'glyph-round'}`;
+    el.title = `Type ${i+1}`;
+    el.dataset.index = i;
+    el.onclick = ()=>{ selectedTypeIndex = i; document.getElementById('typeSel').value = String(i); updateTypeIconSelection(); redraw(); };
+    holder.appendChild(el);
+  });
+  updateTypeIconSelection();
+}
+function updateTypeIconSelection(){ const icons = Array.from(document.querySelectorAll('#typeIcons .type-icon')); icons.forEach(el=> el.classList.remove('is-selected')); if(selectedTypeIndex>=0){ const el = icons[selectedTypeIndex]; if(el) el.classList.add('is-selected'); } }
+function mousePressed(){ if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) { return; } if (isCustomizeMode) { for (let i = speakerData.length - 1; i >= 0; i--) { const s = speakerData[i]; if (dist(mouseX, mouseY, s.x, s.y) < s.r) { draggedSpeaker = s; dragOffsetX = mouseX - s.x; dragOffsetY = mouseY - s.y; p5Canvas.elt.style.cursor = 'grabbing'; return; } } } }
+function mouseDragged() { if (draggedSpeaker) { draggedSpeaker.x = mouseX - dragOffsetX; draggedSpeaker.y = mouseY - dragOffsetY; redraw(); } }
+function mouseReleased() { if (draggedSpeaker) { draggedSpeaker = null; p5Canvas.elt.style.cursor = 'grab'; } }
+function keyPressed(){ if(key==='S'||key==='s'){ document.getElementById('save').click(); } else if(key==='R'||key==='r'){ document.getElementById('randomize').click(); } else if(key==='C'||key==='c'){ document.getElementById('customize').click(); } }
+
+function draw(){
+  if (!width || width <= 10) return;
+  if (!isCustomizeMode) {
+      generateSpeakers();
+  }
+  renderSpeakers();
+}
+
+function generateSpeakers() {
+  randomSeed(seed);
+  noiseSeed(seed);
+  
+  const typesAll = allTypes();
+  const variety = complexity; 
+  let pool = shuffle(typesAll).slice(0, variety);
+  
+  if (selectedTypeIndex > -1 && typesAll[selectedTypeIndex]) {
+    pool = [typesAll[selectedTypeIndex]];
+  }
+  
+  const sizeNormal = (globalScalePct - 30) / (100 - 30);
+  const speakerSizeMultiplier = 0.5 + sizeNormal * 1.0;
+  
+  let norm = generateLayout(layoutMode, speakerCount);
+  
+  // 1. 대칭의 기준이 될 패턴을 한쪽으로 강제 정렬합니다. (이전과 동일)
+  if (verticalSym && horizontalSym) {
+    norm = norm.map(s => ({ ...s, x: -Math.abs(s.x), y: -Math.abs(s.y) }));
+  } else if (verticalSym) {
+    norm = norm.map(s => ({ ...s, x: -Math.abs(s.x) }));
+  } else if (horizontalSym) {
+    norm = norm.map(s => ({ ...s, y: -Math.abs(s.y) }));
+  }
+
+  const padding = (layoutMode === 'central') ? 0 : width * 0.01;
+  const padN = padding / (width/2);
+
+  const rBig = 0.18 * speakerSizeMultiplier;
+  const rMed = 0.12 * speakerSizeMultiplier;
+  const rSm = 0.085 * speakerSizeMultiplier;
+  
+  const normWithR = norm.map(n=>{ const t = random(); const rN = (t < 0.12 ? rBig : t < 0.45 ? rMed : rSm); return {...n, rN}; });
+  
+  let maxScale = 1.0;
+  for(const s of normWithR){
+    if (Math.abs(s.x) + s.rN > 0 && Math.abs(s.y) + s.rN > 0) {
+      const limitX = (1 - padN) / (Math.abs(s.x) + s.rN);
+      const limitY = (1 - padN) / (Math.abs(s.y) + s.rN);
+      maxScale = Math.min(maxScale, limitX, limitY);
+    }
+  }
+  
+  const K = maxScale;
+  
+  // 이제 baseSpeakers는 항상 대칭의 기준면에만 생성됩니다.
+  let baseSpeakers = [];
+  normWithR.forEach((s, index) => {
+    const rpx = (width/2) * K * s.rN;
+    const cx  = width/2 + (width/2) * K * s.x;
+    const cy  = height/2 + (height/2) * K * s.y;
+    const typeFn = pool[index % pool.length];
+    baseSpeakers.push({x: cx, y: cy, r: rpx, type: typeFn});
+  });
+
+  // --- 💡 [최종 수정 2] 보다 안정적인 대칭 적용 로직 💡 ---
+  
+  let finalSpeakers = [...baseSpeakers]; // 최종 스피커 목록은 원본(마스터 패턴)으로 시작
+
+  if (verticalSym && horizontalSym) {
+      // baseSpeakers는 '좌측 상단' 패턴입니다.
+      // 1. 아래쪽으로 대칭 복사 (좌측 하단 생성)
+      const southMirrors = baseSpeakers
+          .filter(s => Math.abs(s.y - height / 2) > 1)
+          .map(s => ({ ...s, y: height - s.y }));
+      
+      // 2. 원본(좌측 상단)을 오른쪽으로 대칭 복사 (우측 상단 생성)
+      const eastMirrors = baseSpeakers
+          .filter(s => Math.abs(s.x - width / 2) > 1)
+          .map(s => ({ ...s, x: width - s.x }));
+
+      // 3. 1번에서 만든 좌측 하단을 오른쪽으로 대칭 복사 (우측 하단 생성)
+      const southEastMirrors = southMirrors
+          .filter(s => Math.abs(s.x - width / 2) > 1)
+          .map(s => ({ ...s, x: width - s.x }));
+
+      // 4. 계산된 모든 대칭 복사본을 최종 목록에 추가
+      finalSpeakers.push(...southMirrors, ...eastMirrors, ...southEastMirrors);
+
+  } else if (verticalSym) {
+      // baseSpeakers는 '왼쪽' 패턴입니다. 오른쪽으로 대칭 복사합니다.
+      const eastMirrors = baseSpeakers
+          .filter(s => Math.abs(s.x - width / 2) > 1)
+          .map(s => ({ ...s, x: width - s.x }));
+      finalSpeakers.push(...eastMirrors);
+
+  } else if (horizontalSym) {
+      // baseSpeakers는 '위쪽' 패턴입니다. 아래쪽으로 대칭 복사합니다.
+      const southMirrors = baseSpeakers
+          .filter(s => Math.abs(s.y - height / 2) > 1)
+          .map(s => ({ ...s, y: height - s.y }));
+      finalSpeakers.push(...southMirrors);
+  }
+  
+  speakerData = finalSpeakers;
+}
+
+function renderSpeakers() {
+    background(canvasBlack ? 0 : color('#F2F1F0'));
+    const pal = paletteFromKey(keyColor);
+    for(const s of speakerData){
+        s.type(s.x, s.y, s.r, pal, {bgDark: canvasBlack, glow: glowEnabled});
+    }
+}
+
+// Fisher-Yates shuffle
+function shuffle(array) {
+  let currentIndex = array.length, randomIndex;
+  const newArray = [...array];
+  while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [newArray[currentIndex], newArray[randomIndex]] = [newArray[randomIndex], newArray[currentIndex]];
+  }
+  return newArray;
+}
+
+function generateLayout(mode, count){ if(mode==='cross') return layoutCross(count); if(mode==='triangle') return layoutTriangle(count); if(mode==='grid') return layoutGrid(count); if(mode==='random') return layoutRandom(count); if(mode==='tshape') return layoutTShape(count); if(mode==='circle') return layoutCircle(count); if(mode==='lineH') return layoutLineH(count); if(mode==='lineV') return layoutLineV(count); if(mode==='wave') return layoutWave(count); if(mode==='eleven') return layoutEleven(count); return layoutCentral(count); }
+function layoutCentral(n){ const out=[]; if(n<=0) return out; out.push({x:0,y:0}); if(n===1) return out; let placed=1; const rings=[6,12,18,24,30,36,42]; let ring=0; while(placed<n){ const num = rings[ring] || rings[rings.length-1]; for(let i=0;i<num && placed<n;i++){ const t=i/num*TAU; const r=0.18 + ring*0.18 + random(-0.02,0.02); out.push({x:Math.cos(t)*r, y:Math.sin(t)*r}); placed++; } ring++; } return out; }
+function layoutCross(n){ const out=[{x:0,y:0}]; const perArm=Math.max(0, Math.floor((n-1)/4)); const steps=Array.from({length:perArm},(_,i)=>(i+1)/(perArm+1)); for(const s of steps){ out.push({x:s*0.95,y:0},{x:-s*0.95,y:0},{x:0,y:s*0.95},{x:0,y:-s*0.95}); } return out.slice(0,n); }
+function layoutTriangle(n){ const rows=Math.ceil((Math.sqrt(8*n+1)-1)/2); const out=[]; const s=0.35; const v=s*Math.sqrt(3)/2; let count=0; for(let r=0;r<rows && count<n;r++){ const cols=r+1; for(let c=0;c<cols && count<n;c++){ const x=(c-r/2)*s; const y=(r-(rows-1)/2)*v; out.push({x,y}); count++; } } return out; }
+function layoutGrid(n){ const out=[]; const g=Math.ceil(Math.sqrt(n)); const step=1.8/g; for(let r=0;r<g;r++){ for(let c=0;c<g;c++){ if(out.length>=n) break; out.push({x:(c-(g-1)/2)*step, y:(r-(g-1)/2)*step}); } } return out; }
+function layoutTShape(n){ const out=[]; const barRatio=0.45; const barN=Math.max(2,Math.round(n*barRatio)); const stemN=Math.max(1,n-barN); const yBar=-0.6; for(let i=0;i<barN;i++){ const t=barN===1?0.5:i/(barN-1); const x=-0.9+t*1.8; out.push({x,y:yBar}); } for(let i=0;i<stemN;i++){ const t=stemN===1?0.5:i/(stemN-1); const y = yBar + t * 1.55; out.push({x:0,y}); } return out.slice(0,n); }
+function layoutCircle(n){ const out=[]; const r=0.92; for(let i=0;i<n;i++){ const a=(i/n)*TAU - Math.PI/2; out.push({x:Math.cos(a)*r, y:Math.sin(a)*r}); } return out; }
+function layoutLineH(n){ const out=[]; const y=0; for(let i=0;i<n;i++){ const t=n===1?0.5:i/(n-1); const x=-0.95+t*1.9; out.push({x,y}); } return out; }
+function layoutLineV(n){ const out=[]; const x=0; for(let i=0;i<n;i++){ const t=n===1?0.5:i/(n-1); const y=-0.95+t*1.9; out.push({x,y}); } return out; }
+function layoutWave(n){ const out=[]; const A=0.5; const cycles=n<12?1:(n<24?1.5:2); for(let i=0;i<n;i++){ const t=n===1?0.5:i/(n-1); const x=-0.95+t*1.9; const y=A*Math.sin(cycles*TAU*t)*0.9; out.push({x,y}); } return out; }
+function layoutRandom(n){ const out=[]; for(let i=0;i<n;i++) out.push({x:random(-0.95,0.95), y:random(-0.95,0.95)}); return out; }
+function layoutEleven(n) {
+  const out = [];
+  const nLeft = Math.ceil(n / 2);
+  const nRight = Math.floor(n / 2);
+  const xOffset = 0.4;
+  for (let i = 0; i < nLeft; i++) {
+    const t = nLeft === 1 ? 0.5 : i / (nLeft - 1);
+    const y = -0.95 + t * 1.9;
+    out.push({ x: -xOffset, y });
+  }
+  for (let i = 0; i < nRight; i++) {
+    const t = nRight === 1 ? 0.5 : i / (nRight - 1);
+    const y = -0.95 + t * 1.9;
+    out.push({ x: xOffset, y });
+  }
+  return out;
+}
+function availableTypes(){ return allTypes(); }
+function allTypes(){ return [ typeRound, typeSquareFrameRound, typeDonutColor, typeOctagonDeep, typeConcentricRings, typeBezelScrews, typePerforatedGrille, typeTriSpoke, typeMetalDisc, typeTweeter, typeHorn, typeTurbine, typeCDSheen, typeHexWoofer, typeCrossGrilleCombo ]; }
+function beginShadow(r,{bgDark,glow}){ const ctx = drawingContext; ctx.save(); if(glow){ if(bgDark){ ctx.shadowBlur = Math.max(8, r*0.35); ctx.shadowColor = 'rgba(255,255,255,0.65)'; } else { ctx.shadowBlur = 20; ctx.shadowColor = 'rgba(0,0,0,0.4)'; } } else { ctx.shadowBlur = 0; ctx.shadowColor = 'rgba(0,0,0,0)'; } }
+function endShadow(){ drawingContext.restore(); }
+function drawScrews(x,y,r){ push(); noStroke(); const k=[[-1,-1],[1,-1],[1,1],[-1,1]]; for(const o of k){ fill(30); circle(x+o[0]*r*0.82, y+o[1]*r*0.82, Math.max(3,r*0.09)); fill(80); circle(x+o[0]*r*0.82, y+o[1]*r*0.82, Math.max(2,r*0.06)); } pop(); }
+function drawCrossGrille(x,y,r,p){ push(); stroke(p.ringDark); strokeWeight(Math.max(4, r*0.12)); line(x-r*0.55, y, x+r*0.55, y); line(x, y-r*0.55, x, y+r*0.55); pop(); }
+function drawRoundWoofer(x,y,r,p,o){ beginShadow(r,o); fill(p.key); noStroke(); circle(x,y,r*2.05); endShadow(); radialCircle(x,y,r*1.05, color(0,0,0,40), color(0,0,0,140)); radialCircle(x,y,r*0.98, p.ringDark, p.ringLight); radialCircle(x,y,r*0.78, p.coneDark, p.coneLight); radialCircle(x,y,r*0.28, p.capLight, p.capDark); drawScrews(x,y,r*0.95); }
+function drawHexWoofer(x,y,r,p,o){ push(); translate(x,y); beginShadow(r,o); fill(p.key); noStroke(); polygon(0,0,r*1.9,6); endShadow(); radialCircle(0,0,r*1.02, color(0,0,0,50), color(0,0,0,140)); radialCircle(0,0,r*0.96, p.ringDark, p.ringLight); radialCircle(0,0,r*0.76, p.coneDark, p.coneLight); radialCircle(0,0,r*0.27, p.capLight, p.capDark); pop(); }
+function drawTweeter(x,y,r,p,o){ beginShadow(r,o); fill(p.key); noStroke(); circle(x,y,r*2.0); endShadow(); radialCircle(x,y,r*0.9, color(60,60,65), color(20,20,22)); radialCircle(x,y,r*0.62, color(210), color(60)); radialCircle(x-r*0.18,y-r*0.18,r*0.22, color(255,200), color(255,0)); }
+function drawHorn(x,y,r,p,o){ push(); rectMode(CENTER); beginShadow(r,o); noStroke(); fill(p.key); const w=r*1.7, h=r*1.1; rect(x,y,w*1.1,h*1.1, r*0.18); endShadow(); linearRect(x,y,w,h, color(30), color(120)); stroke(230,230,230,60); strokeWeight(Math.max(1,h*0.03)); for(let i=-2;i<=2;i++) line(x-w*0.38, y+i*h*0.18, x+w*0.38, y+i*h*0.18); pop(); }
+function typeRound(x,y,r,p,o){ drawRoundWoofer(x,y,r,p,o); }
+function typeSquareFrameRound(x,y,r,p,o){ push(); rectMode(CENTER); beginShadow(r,o); noStroke(); fill(p.key); const w=r*1.9; rect(x,y,w,w, r*0.25); endShadow(); radialCircle(x,y,r*0.98, color(0,0,0,55), color(0,0,0,160)); radialCircle(x,y,r*0.78, p.coneDark, p.coneLight); radialCircle(x,y,r*0.28, p.capLight, p.capDark); drawScrews(x,y,r*0.95); pop(); }
+function typeDonutColor(x, y, r, p, o) { push(); translate(x, y); rectMode(CENTER); beginShadow(r, o); const frameGrad = drawingContext.createLinearGradient(-r, -r, r, r); frameGrad.addColorStop(0, toRGBA(lerpColor(p.key, color(255), 0.15))); frameGrad.addColorStop(1, toRGBA(lerpColor(p.key, color(0), 0.35))); drawingContext.fillStyle = frameGrad; rect(0, 0, r * 1.9, r * 1.9, r * 0.15); endShadow(); noFill(); stroke(lerpColor(p.key, color(255), 0.6)); strokeWeight(Math.max(1, r * 0.02)); rect(0, 0, r * 1.5, r * 1.5, r * 0.1); radialCircle(0, 0, r * 0.85, color(20), color(5)); radialCircle(0, 0, r * 0.65, color(40), color(10)); radialCircle(0, 0, r * 0.28, color(60), color(15)); pop(); }
+function typeOctagonDeep(x,y,r,p,o){ push(); translate(x,y); beginShadow(r,o); noStroke(); fill(p.key); polygon(0,0,r*2.0,8); endShadow(); radialCircle(0,0,r*0.96, color(0,0,0,60), color(0,0,0,160)); radialCircle(0,0,r*0.74, p.coneDark, p.coneLight); radialCircle(0,0,r*0.26, p.capLight, p.capDark); pop(); }
+function typeConcentricRings(x, y, r, p, o) { push(); translate(x, y); rectMode(CENTER); beginShadow(r, o); const frameGrad = drawingContext.createLinearGradient(-r, -r, r, r); frameGrad.addColorStop(0, toRGBA(lerpColor(p.key, color(255), 0.1))); frameGrad.addColorStop(1, toRGBA(lerpColor(p.key, color(0), 0.4))); drawingContext.fillStyle = frameGrad; rect(0, 0, r * 1.9, r * 1.9, r * 0.12); endShadow(); fill(30); const boltOffset = r * 0.8; const boltSize = r * 0.25; for (let dx of [-1, 1]) { for (let dy of [-1, 1]) { circle(dx * boltOffset, dy * boltOffset, boltSize); } } noFill(); stroke(lerpColor(p.key, color(255), 0.5)); strokeWeight(Math.max(2, r * 0.25)); rect(0, 0, r * 1.4, r * 1.4, r * 0.08); radialCircle(0, 0, r * 0.8, lerpColor(p.key, color(255), 0.2), lerpColor(p.key, color(0), 0.5) ); radialCircle(0, 0, r * 0.28, color(50), color(10)); pop(); }
+function typeBezelScrews(x,y,r,p,o){ push(); translate(x,y); beginShadow(r,o); noStroke(); fill( lerpColor(p.key, color(20), 0.15) ); polygon(0,0, r*2.05, 8); endShadow(); fill( lerpColor(color(255,235,140), p.key, 0.15) ); polygon(0,0, r*1.62, 8); noStroke(); fill(15); for(let i=0;i<8;i++){ const a=i*TAU/8; circle( cos(a)*r*0.95, sin(a)*r*0.95, Math.max(2,r*0.09)); } radialCircle(0,0, r*1.02, color(0,0,0,50), color(0,0,0,140)); radialCircle(0,0, r*0.96, p.ringDark, p.ringLight); const coneA=lerpColor(color(255,135,60), p.coneDark, 0.15); const coneB=lerpColor(p.coneDark, color(0), 0.25); radialCircle(0,0, r*0.76, coneA, coneB); radialCircle(0,0, r*0.28, color(40), color(10)); pop(); }
+function typePerforatedGrille(x,y,r,p,o){ beginShadow(r,o); noStroke(); fill( lerpColor(p.key, color(20), 0.25) ); circle(x,y, r*2.02); endShadow(); const iridA=lerpColor(p.key, color(190,210,255), 0.45); const iridB=lerpColor(color(18,22,32), p.key, 0.20); radialCircle(x,y, r*0.98, iridA, iridB); const rr=r*0.88; const vstep=Math.max(3, r*0.14); const hstep=vstep*1.15; push(); noStroke(); radialCircle(x,y, rr*1.02, color(0,0,0,120), color(0,0,0,220)); for(let row=-rr; row<=rr; row+=vstep){ const y0=y+row; const odd=Math.round((row/vstep)) & 1; for(let col=-rr; col<=rr; col+=hstep){ const x0=x+col+(odd?hstep*0.5:0); const d=Math.hypot(x0-x,y0-y); if(d<rr*0.96){ fill(0,150); circle(x0,y0,Math.max(1.6,r*0.085)); fill(255,40); circle(x0,y0 - r*0.012, Math.max(0.6,r*0.03)); } } } pop(); push(); translate(x,y); noFill(); stroke(255,28); strokeWeight(Math.max(1, r*0.02)); arc(0,0, r*1.72, r*1.72, -HALF_PI_SAFE-0.42, -HALF_PI_SAFE+0.18); stroke(255,18); arc(0,0, r*1.46, r*1.46, HALF_PI_SAFE-0.08, HALF_PI_SAFE+0.62); pop(); noFill(); stroke(255,22); strokeWeight(Math.max(1, r*0.01)); circle(x,y, r*1.06); }
+function typeTriSpoke(x,y,r,p,o){ beginShadow(r,o); noStroke(); fill(p.key); circle(x,y,r*2.0); endShadow(); radialCircle(x,y,r*0.95, color(0,0,0,60), color(0,0,0,150)); fill(220); circle(x,y,r*0.42); push(); translate(x,y); fill(70); noStroke(); for(let i=0;i<3;i++){ rotate(TAU/3); quad(-r*0.06, -r*0.06, r*0.38, -r*0.02, r*0.38, r*0.02, -r*0.06, r*0.06); } pop(); fill(40); circle(x,y,r*0.22); }
+function typeMetalDisc(x, y, r, p, o){ beginShadow(r, o); noStroke(); radialCircle(x, y, r * 1.02, color(210), color(90)); endShadow(); noFill(); stroke( lerpColor(p.key, color(255), 0.25) ); strokeWeight(Math.max(1, r * 0.020)); circle(x, y, r * 1.76); radialCircle( x, y, r * 0.86, lerpColor(p.key, color(255), 0.22), lerpColor(p.key, color(0),   0.48) ); noFill(); stroke(255, 26); for(let k = 0; k < 5; k++){ const rr = r * (0.40 + k * 0.08); strokeWeight(Math.max(0.5, r * 0.007)); circle(x, y, rr * 2); } radialCircle( x, y, r * 0.30, lerpColor(color(255), p.key, 0.28), lerpColor(color(40),  p.key, 0.52) ); fill(30); const bolts = 6; for(let i = 0; i < bolts; i++){ const a = (i / bolts) * TAU; circle(x + cos(a) * r * 0.94, y + sin(a) * r * 0.94, Math.max(2, r * 0.09)); fill(80); circle(x + cos(a) * r * 0.94, y + sin(a) * r * 0.94, Math.max(1.5, r * 0.06)); fill(30); } glossArc(x, y, r * 1.60, 0.010, -HALF_PI_SAFE - 0.30, -HALF_PI_SAFE + 0.30, 22); glossArc(x, y, r * 0.85, 0.018,  0.15,  0.85, 16); }
+function typeTweeter(x,y,r,p,o){ beginShadow(r,o); noStroke(); fill( lerpColor(p.key, color(20), 0.18) ); circle(x,y, r*2.04); endShadow(); radialCircle(x,y, r*1.0, color(236), color(110)); const schemes=[ {accent:color(30,140,255),bodyA:color(246),bodyB:color(180)}, {accent:color(30,190,140),bodyA:color(245),bodyB:color(175)}, {accent:color(255,190,30),bodyA:color(247),bodyB:color(185)} ]; const sc=random(schemes); const bowlLight=lerpColor(sc.bodyA, p.key, 0.04); const bowlDark=lerpColor(sc.bodyB, color(40), 0.35); radialCircle(x,y, r*0.86, bowlLight, bowlDark); noFill(); stroke(sc.accent); strokeWeight(Math.max(1, r*0.015)); circle(x,y, r*1.50); radialCircle(x,y, r*0.28, lerpColor(color(255), p.key, 0.20), lerpColor(color(90), color(0), 0.4)); push(); translate(x,y); noStroke(); for(let i=0;i<2;i++){ const t=i/2; fill(255,32*(1-t)); arc(0,0, r*(0.50+t*0.05), r*(0.50+t*0.05), -HALF_PI_SAFE-0.28, -HALF_PI_SAFE+0.28); } pop(); noFill(); stroke(255,22); strokeWeight(Math.max(1, r*0.01)); circle(x,y, r*1.04); stroke(255,18); strokeWeight(Math.max(1, r*0.012)); circle(x,y, r*1.80); }
+function typeHorn(x,y,r,p,o){ beginShadow(r,o); noStroke(); fill( lerpColor(p.key, color(20), 0.25) ); circle(x,y,r*2.05); endShadow(); radialCircle(x,y, r*1.02, color(235), color(95)); noFill(); stroke(255,60); strokeWeight(Math.max(1,r*0.018)); circle(x,y,r*1.84); const anodizeInner=lerpColor(p.key, color(255), 0.35); const anodizeOuter=lerpColor(color(40,60,120), color(0), 0.2); radialCircle(x,y, r*0.9, anodizeInner, anodizeOuter); push(); translate(x,y); stroke(255,22); strokeWeight(Math.max(1, r*0.01)); noFill(); const arcs=120; for(let i=0;i<arcs;i++){ const a=i*(TAU/arcs); const span=0.18+(i%7)*0.002; arc(0,0, r*1.6, r*1.6, a, a+span); } pop(); radialCircle(x,y, r*0.58, color(225), color(70)); radialCircle(x,y, r*0.3, color(255), lerpColor(p.key, color(0), 0.35)); push(); translate(x,y); rotate(-0.35); noStroke(); for(let i=0;i<5;i++){ const t=i/5; fill(255, 48*(1-t)); arc(0,0, r*(0.62+t*0.06), r*(0.62+t*0.06), -HALF_PI_SAFE-0.32, -HALF_PI_SAFE+0.32); } pop(); noFill(); stroke(255,28); strokeWeight(Math.max(1,r*0.01)); circle(x,y,r*1.06); }
+function typeTurbine(x,y,r,p,o){ beginShadow(r,o); noStroke(); fill(p.key); circle(x,y,r*2.0); endShadow(); radialCircle(x,y,r*0.94, color(30), color(110)); push(); translate(x,y); noStroke(); const blades=7+Math.floor(random(0,3)); for(let i=0;i<blades;i++){ rotate(TAU/blades); const w=r*0.22,h=r*0.52; fill( lerpColor(color(180), color(40), i/blades) ); beginShape(); vertex(0,-r*0.08); bezierVertex(w*0.2,-h*0.35, w*0.9,-h*0.15, w,0); bezierVertex(w*0.9,h*0.15, w*0.2,h*0.35, 0,r*0.08); endShape(CLOSE); } pop(); fill(35); circle(x,y,r*0.26); }
+function typeCDSheen(x,y,r,p,o){ beginShadow(r,o); noStroke(); fill( lerpColor(p.key, color(30), 0.2) ); circle(x,y,r*2.05); endShadow(); radialCircle(x,y, r*1.0, color(238), color(100)); noFill(); stroke(255,55); strokeWeight(Math.max(1,r*0.016)); circle(x,y,r*1.82); const coneMid=lerpColor(p.coneLight, color(255), 0.08); radialCircle(x,y, r*0.82, coneMid, lerpColor(p.coneDark, color(0), 0.2)); push(); noFill(); stroke(255,18); strokeWeight(Math.max(0.5,r*0.008)); for(let k=0;k<7;k++){ circle(x,y, r*(0.36 + k*0.07)*2 ); } pop(); radialCircle(x,y, r*0.56, color(225), color(70)); radialCircle(x,y, r*0.26, lerpColor(color(255), p.key, 0.35), lerpColor(p.key, color(40), 0.45)); push(); translate(x,y); noStroke(); for(let i=0;i<6;i++){ const t=i/6; fill(255, 44*(1-t)); arc(0,0, r*(0.54+t*0.06), r*(0.54+t*0.06), -HALF_PI_SAFE-0.36, -HALF_PI_SAFE+0.36); } pop(); noFill(); stroke(255,22); strokeWeight(Math.max(1,r*0.009)); circle(x,y,r*1.04); }
+function typeHexWoofer(x, y, r, p, o) { push(); translate(x, y); rectMode(CENTER); beginShadow(r, o); noStroke(); fill(20); rect(0, 0, r * 2.0, r * 2.0, r * 0.06); endShadow(); const bgA = lerpColor(p.key, color(255), 0.06); const bgB = lerpColor(p.key, color(0),   0.35); linearRect(0, 0, r * 1.80, r * 1.80, bgA, bgB); const cross = color('#FF4B00'); noStroke(); fill(cross); rect(0, 0, r * 0.20, r * 1.80); rect(0, 0, r * 1.80, r * 0.20); fill(0); circle(0, 0, r * 0.60); fill(50); circle(0, 0, r * 0.40); fill(15); circle(0, 0, r * 0.22); noFill(); stroke(255, 18); strokeWeight(Math.max(1, r * 0.01)); rect(0, 0, r * 1.80, r * 1.80, r * 0.02); pop(); }
+function typeCrossGrilleCombo(x,y,r,p,o){ drawRoundWoofer(x,y,r,p,o); drawCrossGrille(x,y,r*0.9,p); }
+
+function radialCircle(cx,cy,r,cInner,cOuter){ const ctx = drawingContext; const g = ctx.createRadialGradient(cx,cy, r*0.05, cx,cy, r); g.addColorStop(0, toRGBA(cInner,1)); g.addColorStop(1, toRGBA(cOuter,1)); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill(); }
+function linearRect(cx,cy,w,h,c1,c2){ const ctx = drawingContext; const g = ctx.createLinearGradient(cx-w/2,cy-h/2,cx+w/2,cy+h/2); g.addColorStop(0, toRGBA(c1,1)); g.addColorStop(1, toRGBA(c2,1)); ctx.fillStyle = g; ctx.beginPath(); ctx.rect(cx-w/2,cy-h/2,w,h); ctx.fill(); }
+function polygon(x,y,d, sides){ const r=d/2; beginShape(); for(let i=0;i<sides;i++){ const a = -HALF_PI_SAFE + i*TAU/sides; vertex(x + r*cos(a), y + r*sin(a)); } endShape(CLOSE); }
+function toRGBA(c, a=1){ const rr = red(c), gg = green(c), bb = blue(c), aa = (alpha(c)/255)*a; return `rgba(${rr|0},${gg|0},${bb|0},${aa})`; }
+function glossArc(cx, cy, r, weight, from, to, alpha = 26){ push(); noFill(); stroke(255, alpha); strokeWeight(Math.max(1, r * weight)); arc(cx, cy, r * 2, r * 2, from, to); pop(); }
+function paletteFromKey(key){ const k = color(key); const ringDark = lerpColor(color(0), k, 0.15); const ringLight = lerpColor(k, color(255), 0.18); const coneDark = color(28,28,32); const coneLight = color(90,90,98); const capLight = color(220); const capDark = color(50); return { key:k, ringDark, ringLight, coneDark, coneLight, capLight, capDark }; }
+</script>
+</body>
+</html>
