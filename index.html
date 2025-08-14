@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
+ <meta charset="utf-8" />
   <title>Homer Radio Image Generator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Generate Homer Radio–style images in your browser. Open-source by Téo Kim." />
-  <link rel="icon" href="./thumb.jpg">
+
+  <!-- Favicon (thumb.jpg as tab icon) -->
+  <link rel="icon" type="image/jpeg" href="./thumb.jpg">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
@@ -139,6 +141,11 @@
 <script src="https://cdn.jsdelivr.net/npm/p5@1.9.3/lib/p5.min.js"></script>
 </head>
 <body>
+<header style="text-align:center; padding: 40px 20px;">
+    <img src="./thumb.jpg" alt="Homer Radio Image Generator cover" style="max-width:100%; height:auto; border-radius:12px;">
+    <h1 style="margin-top:20px; font-size:2em; font-weight:bold;">Homer Radio Image Generator</h1>
+    <p style="font-size:1.2em; color:#555;">Generate Homer Radio–style images in your browser. Open-source by Téo Kim.</p>
+  </header>
   <div id="wrap">
     <div id="theme-toggle-container">
       <label class="toggle">
