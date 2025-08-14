@@ -6,10 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Generate Homer Radio–style images in your browser. Open-source by Téo Kim." />
 
-  <!-- Favicon (thumb.jpg as tab icon) -->
   <link rel="icon" type="image/jpeg" href="./thumb.jpg">
 
-  <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://teokim8.github.io/Homer-Radio-Image-Generator/">
   <meta property="og:title" content="Homer Radio Image Generator">
@@ -18,13 +16,14 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
-  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://teokim8.github.io/Homer-Radio-Image-Generator/">
   <meta name="twitter:title" content="Homer Radio Image Generator">
   <meta name="twitter:description" content="Generate Homer Radio–style images in your browser. Open-source by Téo Kim.">
   <meta name="twitter:image" content="https://teokim8.github.io/Homer-Radio-Image-Generator/thumb.jpg">
 <style>
+
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;700;900&display=swap');
   :root{
     /* Light/Dark Mode Color Variables */
     /* Default is Dark Mode */
@@ -35,39 +34,100 @@
   }
   html { height: 100%; }
   body { min-height: 100%; margin: 0; background: var(--bg-color); color: var(--ink); font-family: "Helvetica Neue", Helvetica, "Arial Black", Arial, ui-sans-serif, system-ui, sans-serif; transition: background .3s ease, color .3s ease; -webkit-user-select: none; -ms-user-select: none; user-select: none; }
-  #theme-toggle-container { position: absolute; top: 16px; right: 16px; z-index: 100; }
+  
+  /* Base & Layout 섹션에 추가 */
+.title-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+  
+/* 모바일 기본 스타일 */
+#theme-toggle-container {
+  position: static;
+  flex-shrink: 0; /* 좁은 화면에서 줄어들지 않도록 설정 */
+}
+/* 데스크탑 스타일 복원 */
+@media (min-width: 768px) {
+  #theme-toggle-container {
+    position: absolute; /* 데스크탑에서는 다시 absolute로 설정 */
+    z-index: 100;
+    top: 24px;
+    right: 24px;
+  }
+}
   #theme-toggle-container .toggle-label { font-size: 12px; }
   #wrap{ display: flex; flex-direction: column; padding: 16px; gap: 20px; min-height: 100%; box-sizing: border-box; position: relative; }
-  h1.title-xl { order: 1; padding-top: 32px; }
+  h1.title-xl {  padding-top: 0px; }
   #stage{ order: 2; }
   #ui { order: 3; }
   #stage{ width: 100%; height: auto; display: flex; justify-content: center; align-items: center; }
-  canvas{ box-shadow:0 10px 40px rgba(0,0,0,.4); border-radius:0; max-width: 100%; height: auto !important; cursor: default; }
+
+  
+
+
+  
+  /* Canvas Styling Updates */
+  canvas{ 
+    box-shadow:0 10px 40px rgba(0,0,0,.4); 
+    border-radius:5px; /* Added corner radius */
+    max-width: 100%; 
+    height: auto !important; 
+    cursor: default; 
+    transition: box-shadow .3s ease;
+  }
+  body.light-mode canvas {
+    box-shadow: 0 5px 20px rgba(0,0,0,.2); /* Reduced shadow spread for light mode */
+  }
+
   canvas.custom-mode { cursor: grab; }
   #ui{ position: relative; left: auto; top: auto; width: 100%; display:grid; gap: 14px; }
-  .type-icons{ display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .type-icons{ 
+    display: flex; 
+    flex-wrap: nowrap; /* 한 줄로 변경 */
+    overflow-x: auto;  /* 가로 스크롤 추가 */
+    gap: 10px; 
+    margin-top: 10px;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .type-icons::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and Opera */
+  }
   .title-xl{ font-size: 32px; letter-spacing: -2px; }
   @media (min-width: 768px) {
     #theme-toggle-container { top: 24px; right: 24px; }
-    #wrap{ display: grid; grid-template-rows: auto 1fr; grid-template-columns: 300px 1fr; align-items: flex-start; gap: 0 24px; padding: 24px; }
+    #wrap{ display: grid; grid-template-rows: auto 1fr; grid-template-columns: 320px 1fr; align-items: flex-start; gap: 0 24px; padding: 24px; }
     h1.title-xl { order: unset; grid-column: 1 / 2; grid-row: 1 / 2; padding-bottom: 24px; padding-top: 0; }
     #ui { order: unset; grid-column: 1 / 2; grid-row: 2 / 3; width: 100%; position: sticky; top: 24px; }
-    #stage { order: unset; grid-column: 2 / 3; grid-row: 1 / 3; align-self: start; }
+    #stage { order: unset; grid-column: 2 / 3; grid-row: 1 / 3; align-self: start; padding-right: 130px; /* 캔버스 오른쪽에 여백 추가 */
+    box-sizing: border-box; /* 패딩이 너비 계산에 포함되도록 설정 */}
     .title-xl{ font-size: 36px; letter-spacing: -2.5px; }
+    .type-icon { /* 데스크톱 아이콘 크기 복원 */
+      width: 30px;
+      height: 30px;
+    }
     .type-icons{ display: grid; grid-template-columns: repeat(auto-fill, minmax(30px, 1fr)); }
   }
   @media (min-width: 1200px) {
     #theme-toggle-container { top: 32px; right: 32px; }
-    #wrap{ grid-template-columns: 340px 1fr; gap: 0 120px; padding: 32px; }
+    #wrap{ grid-template-columns: 420px 1fr; gap: 0 120px; padding: 32px; }
     .title-xl{ font-size: 40px; letter-spacing: -3px; }
     .type-icons{ display:grid; grid-template-columns: repeat(10, 30px); gap:10px; margin-top:20px; }
   }
   .title-xl{ font-weight:900; line-height:1.05; margin:0; cursor:pointer; }
-  .title-xl .reg-mark{ font-weight:900; vertical-align:text-top; margin-left:2px; letter-spacing:0; opacity:.9; display:inline-block; transform:translateY(-0.06em); }
+  .title-xl .reg-mark{ font-weight:400; vertical-align:text-top; margin-left:2px; letter-spacing:0; opacity:.9; display:inline-block; transform:translateY(-0.06em); }
   .divider{ height:1px; background:var(--line); margin:10px 0; }
   .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px 24px; align-items:center }
   .section{ display:grid; gap:10px; }
-  .section h2{ margin:10px 0 0 0; font-size:16px; font-weight:800; letter-spacing:.02em; }
+  .section h2 {
+  font-family: 'Inter Tight', sans-serif; /* Inter Tight 폰트 적용 */
+  margin: 10px 0 0 0;
+  font-size: 16px;
+  font-weight: 900; /* 폰트 굵기를 900으로 변경 */
+  letter-spacing: .05em;
+}
   label{ font-size:14px; font-weight:700; }
   .ctrl{ background: var(--ctrl-bg); color: var(--ctrl-fg); width:100%; border:none; border-bottom:1px solid var(--line); padding:8px 0; outline:none; border-radius:0; transition: background .3s ease, color .3s ease; }
   .row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-items:center }
@@ -76,13 +136,38 @@
   .row-2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-items:center; }
   .checkbox{ display:flex; gap:10px; align-items:center; font-weight:700 }
   .checkbox input{ width:16px; height:16px }
-  .btn{ background: var(--ctrl-bg); color: var(--ctrl-fg); border:1px solid var(--line); padding:10px 12px; border-radius:10px; font-weight:800; letter-spacing:.01em; cursor:pointer; transition: background .3s ease, color .3s ease, border-color .2s ease, box-shadow .2s ease; }
+  .btn{ 
+    background: var(--ctrl-bg); 
+    color: var(--ctrl-fg); 
+    border:1px solid var(--line); 
+    padding:12px 16px;
+    border-radius:10px; 
+    font-family: 'Inter Tight', sans-serif; /* Inter Tight 폰트 적용 */
+    font-weight:900; 
+    letter-spacing:.05em; 
+    cursor:pointer; 
+    transition: background .3s ease, color .3s ease, border-color .2s ease, box-shadow .2s ease; 
+    font-size: 16px; /* Adjusted font size */
+    line-height: 1;
+    text-align: center;
+  }
   .btn:hover{ border-color:var(--btn-hover-border); }
   .btn.btn-full { width: 100%; }
   .btn.active { background: var(--icon-sel); color: #000; border-color: var(--icon-sel); box-shadow: 0 0 0 2px color-mix(in srgb, var(--icon-sel) 40%, transparent); }
   .hint{ font-size:12px; color:var(--muted); }
   .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px; background:#fff }
-  .type-icon{ width:30px; height:30px; position:relative; background:var(--icon-bg); border:1px solid #ffffff22; border-radius:50%; cursor:pointer; opacity:.9; transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .3s ease; }
+  .type-icon{ 
+    width:24px; /* 모바일 크기 변경 */ 
+    height:24px; /* 모바일 크기 변경 */
+    flex-shrink: 0; /* 아이콘이 찌그러지지 않도록 설정 */
+    position:relative; 
+    background:var(--icon-bg); 
+    border:1px solid #ffffff22; 
+    border-radius:50%; 
+    cursor:pointer; 
+    opacity:.9; 
+    transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .3s ease; 
+  }
   .type-icon:hover{ transform:translateY(-1px); box-shadow:0 2px 8px rgba(0,0,0,.35); }
   .type-icon.is-selected{ border-color:var(--icon-sel); box-shadow:0 0 0 2px color-mix(in srgb, var(--icon-sel) 40%, transparent); }
   .type-icon::before,
@@ -114,7 +199,20 @@
   .glyph-cross::before{ width:18px;height:3px;background:var(--icon-fg); }
   .glyph-cross::after { width:3px;height:18px;background:var(--icon-fg); }
   .toggle { position: relative; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer; font-weight: 700; }
-  .toggle-label { font-size: 14px; }
+.toggle-label {
+  font-family: 'Inter Tight', sans-serif;
+  font-weight: 00;
+  font-size: 14px;
+  letter-spacing: .02em;
+}
+
+  #theme-toggle-container .toggle-label {
+  font-family: 'Inter Tight', sans-serif;
+  font-weight: 900; /* 다른 토글보다 더 두껍게 */
+  color: var(--icon-sel); /* 테마의 강조 색상 적용 */
+  font-size: 14px; /* 다른 토글과 크기를 맞춤 */
+  letter-spacing: .03em;
+}
   .toggle input { opacity: 0; width: 0; height: 0; }
   .slider { position: relative; width: 44px; height: 24px; background-color: var(--toggle-slider-bg); border-radius: 9999px; transition: background-color 0.3s; }
   .slider::before { content: ""; position: absolute; height: 20px; width: 20px; left: 2px; top: 2px; background-color: var(--toggle-slider-thumb); border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
@@ -137,23 +235,30 @@
   .row-full { display:grid; grid-template-columns: 1fr; gap:12px; }
   .btn-save { width:100%; }
   .btn-save:hover { border-color: var(--btn-hover-border); }
+.shortcut {
+  color: var(--icon-sel);
+  font-weight: 700;
+}
+
+  
 </style>
 <script src="https://cdn.jsdelivr.net/npm/p5@1.9.3/lib/p5.min.js"></script>
 </head>
 <body>
 
-  <div id="wrap">
-    <div id="theme-toggle-container">
-      <label class="toggle">
-        <span class="toggle-label">Blonde</span>
-        <input id="themeToggle" type="checkbox">
-        <span class="slider"></span>
-      </label>
+ <div id="wrap">
+    <div class="title-header">
+      <h1 class="title-xl" id="homeTitle">
+        homer <span class="outlined-text">radio</span><sup class="reg-mark" style="font-size: 0.4675em;">®</sup><br><span class="highlight-text">Image</span> Generator
+      </h1>
+      <div id="theme-toggle-container">
+        <label class="toggle">
+          <span class="toggle-label">Blonde</span>
+          <input id="themeToggle" type="checkbox">
+          <span class="slider"></span>
+        </label>
+      </div>
     </div>
-    
-    <h1 class="title-xl" id="homeTitle">
-      homer <span class="outlined-text">radio</span><sup class="reg-mark" style="font-size: 0.4675em;">®</sup><br><span class="highlight-text">Image</span> Generator
-    </h1>
     
     <div id="stage"></div>
     <div id="ui">
@@ -176,7 +281,7 @@
         <div class="divider"></div>
         <div class="grid-2">
           <h2>Layout</h2>
-          <h2>Count: <span id="count-display">9</span></h2>
+          <h2>Count</h2>
           <select id="layout" class="ctrl">
             <option value="cross" selected>Cross</option>
             <option value="central">Central</option>
@@ -235,17 +340,18 @@
       <div class="section">
         <div class="divider"></div>
         <div class="row-2">
-          <button id="customize" class="btn btn-customize" aria-keyshortcuts="C">Customize (C)</button>
-          <button id="randomize" class="btn" aria-keyshortcuts="R">Randomize (R)</button>
+<button id="customize" class="btn btn-customize" aria-keyshortcuts="C">Customize <span class="shortcut">(C)</span></button>
+
+<button id="randomize" class="btn" aria-keyshortcuts="R">Randomize <span class="shortcut">(R)</span></button>
         </div>
         <div class="row-full">
-          <button id="save" class="btn btn-save" aria-keyshortcuts="S">Export PNG (S)</button>
+        <button id="save" class="btn btn-save" aria-keyshortcuts="S">Export PNG <span class="shortcut">(S)</span></button>
         </div>
         <div class="hint mono">Press C to Customize • R to Randomize • S to Export PNG</div>
       </div>
 
       <div class="legal-disclaimer">
-        <p>V1.0, August, 2025<br>Designed by <a href="https://teokim.xyz/" target="_blank">Téo Kim</a></p>
+        <p>V1.2, August, 2025<br>Designed by <a href="https://teokim.xyz/" target="_blank">Téo Kim</a></p>
         <p><a href="https://github.com/teokim8/Homer-Radio-Image-Generator" target="_blank">This project is an open-source personal project.<br>
            Anyone may access, modify, and redistribute the code via GitHub.</a><br>
            All modifications and redistributions must include this Disclaimer.<br>
@@ -314,10 +420,20 @@ function windowResized() {
 function updateCanvasSize() {
   const stageEl = document.getElementById('stage');
   const stageWidth = stageEl.offsetWidth;
-  const stageHeight = windowHeight;
-  const padding = 48;
-  const size = Math.max(200, Math.min(stageWidth, stageHeight) - padding);
+  let size;
+
+  if (window.innerWidth < 768) {
+    // 모바일: 캔버스 너비를 컨테이너에 정확히 맞춤
+    size = stageWidth;
+  } else {
+    // 데스크톱: 기존 로직 유지 (세로 길이도 고려)
+    const stageHeight = windowHeight;
+    const padding = 48;
+    size = Math.max(200, Math.min(stageWidth, stageHeight) - padding);
+  }
+  
   resizeCanvas(size, size);
+
   if (!isCustomizeMode) {
     redraw();
   } else {
@@ -338,7 +454,6 @@ function attachUI() {
   const hSymEl = document.getElementById('symH');
   const themeToggle = document.getElementById('themeToggle');
   const customizeBtn = document.getElementById('customize');
-  const countDisplay = document.getElementById('count-display');
   
   let currentSteps = [];
 
@@ -360,7 +475,6 @@ function attachUI() {
       }
       
       speakerCount = finalCount || (config.steps ? currentSteps[0] : config.min);
-      countDisplay.textContent = speakerCount;
   }
   
   document.getElementById('homeTitle').onclick = () => location.reload();
@@ -404,52 +518,36 @@ function attachUI() {
 
     let newMaxCount;
 
-    // --- 레이아웃별 최대 카운트 계산 로직 ---
-    
-    // 선형 보간(map)을 위한 헬퍼 함수
     const map = (val, s1, e1, s2, e2) => s2 + (e2 - s2) * ((val - s1) / (e1 - s1));
     const sliderMin = 30;
     const sliderMax = 100;
 
-    // 레이아웃에 따라 다른 카운트 범위를 적용
     switch (layoutMode) {
         case 'circle':
-            // 목표: 사이즈 [30, 100] -> 카운트 [44, 12]
             newMaxCount = Math.round(map(globalScalePct, sliderMin, sliderMax, 44, 12));
             break;
-
         case 'lineH':
         case 'lineV':
-            // 목표: 사이즈 [30, 100] -> 카운트 [30, 6]
             newMaxCount = Math.round(map(globalScalePct, sliderMin, sliderMax, 30, 6));
             break;
-
         case 'tshape':
-            // 목표: 사이즈 [30, 100] -> 카운트 [50, 9]
             newMaxCount = Math.round(map(globalScalePct, sliderMin, sliderMax, 50, 9));
             break;
-
         default:
-            // 그 외 다른 레이아웃들은 기존의 power/scaleFactor 로직을 그대로 사용합니다.
             const is1D = ['wave', 'eleven', 'cross'].includes(layoutMode);
             const power = is1D ? 1.1 : 1.8;
             const baseGScale = 75;
             const scaleFactor = Math.pow(baseGScale / globalScalePct, power);
-            
             const maxFromConfig = config.baseMax || config.steps[config.steps.length - 1];
             newMaxCount = Math.ceil(maxFromConfig * scaleFactor);
             break;
     }
 
-    // --- UI 업데이트 로직 (기존과 동일) ---
-
     if (config.steps) {
         currentSteps = config.steps.filter(step => step <= newMaxCount);
         if (currentSteps.length === 0) currentSteps.push(config.steps[0]);
-
         countEl.min = 0;
         countEl.max = currentSteps.length - 1;
-
         const closestStep = currentSteps.reduce((prev, curr) =>
             (Math.abs(curr - speakerCount) < Math.abs(prev - speakerCount) ? curr : prev)
         );
@@ -468,30 +566,24 @@ function attachUI() {
   hSymEl.oninput = e => { horizontalSym = e.target.checked; redraw(); };
   
   themeToggle.oninput = e => { document.body.classList.toggle('light-mode', e.target.checked); };
-  // attachUI 함수 내부
-customizeBtn.onclick = () => {
-    isCustomizeMode = !isCustomizeMode;
-    customizeBtn.classList.toggle('active', isCustomizeMode);
-    p5Canvas.elt.classList.toggle('custom-mode', isCustomizeMode);
-    
-    if (!isCustomizeMode) {
-        // 커스터마이즈 모드를 끌 때는 드래그 상태만 초기화합니다.
-        draggedSpeaker = null;
-    }
-    // redraw() 호출을 제거하여, 사용자가 수정한 위치를 그대로 유지시킵니다.
-};
+
+  customizeBtn.onclick = () => {
+    isCustomizeMode = !isCustomizeMode;
+    customizeBtn.classList.toggle('active', isCustomizeMode);
+    p5Canvas.elt.classList.toggle('custom-mode', isCustomizeMode);
+    if (!isCustomizeMode) {
+        draggedSpeaker = null;
+    }
+  };
   document.getElementById('randomize').onclick = () => {
     disableCustomizeMode();
     seed = Math.floor(Math.random() * 1e9);
-    
     const layouts = Object.keys(layoutCountMap);
     layoutMode = layouts[Math.floor(Math.random() * layouts.length)];
     layoutEl.value = layoutMode;
-    
     globalScalePct = Math.floor(Math.random() * (100 - 30 + 1)) + 30;
     gscaleEl.value = globalScalePct;
     gscaleEl.dispatchEvent(new Event('input', { bubbles: true }));
-
     const config = layoutCountMap[layoutMode];
     if (config.steps) {
         const randomIndex = Math.floor(Math.random() * currentSteps.length);
@@ -504,23 +596,17 @@ customizeBtn.onclick = () => {
         countEl.value = randomCount;
         speakerCount = randomCount;
     }
-    countDisplay.textContent = speakerCount;
-
     const vals = [0, 255];
     const r = random(vals); const g = random(vals); const b = random(vals);
     keyColor = `rgb(${r},${g},${b})`;
     const hex = '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
     keyEl.value = hex;
-
     complexity = Math.floor(Math.random() * (allTypes().length - 1 + 1)) + 1;
     complexEl.value = complexity;
-
     redraw();
   };
   document.getElementById('save').onclick = () => saveCanvas('speakers_' + Date.now(), 'png');
-  
   gscaleEl.dispatchEvent(new Event('input'));
-  
   const allControls = document.querySelectorAll('.ctrl, .type-icon, .btn');
   allControls.forEach(ctrl => {
     if(ctrl.id !== 'customize') {
@@ -564,21 +650,15 @@ function draw(){
 function generateSpeakers() {
   randomSeed(seed);
   noiseSeed(seed);
-  
   const typesAll = allTypes();
   const variety = complexity; 
   let pool = shuffle(typesAll).slice(0, variety);
-  
   if (selectedTypeIndex > -1 && typesAll[selectedTypeIndex]) {
     pool = [typesAll[selectedTypeIndex]];
   }
-  
   const sizeNormal = (globalScalePct - 30) / (100 - 30);
   const speakerSizeMultiplier = 0.5 + sizeNormal * 1.0;
-  
   let norm = generateLayout(layoutMode, speakerCount);
-  
-  // 1. 대칭의 기준이 될 패턴을 한쪽으로 강제 정렬합니다. (이전과 동일)
   if (verticalSym && horizontalSym) {
     norm = norm.map(s => ({ ...s, x: -Math.abs(s.x), y: -Math.abs(s.y) }));
   } else if (verticalSym) {
@@ -586,16 +666,12 @@ function generateSpeakers() {
   } else if (horizontalSym) {
     norm = norm.map(s => ({ ...s, y: -Math.abs(s.y) }));
   }
-
   const padding = (layoutMode === 'central') ? 0 : width * 0.01;
   const padN = padding / (width/2);
-
   const rBig = 0.18 * speakerSizeMultiplier;
   const rMed = 0.12 * speakerSizeMultiplier;
   const rSm = 0.085 * speakerSizeMultiplier;
-  
   const normWithR = norm.map(n=>{ const t = random(); const rN = (t < 0.12 ? rBig : t < 0.45 ? rMed : rSm); return {...n, rN}; });
-  
   let maxScale = 1.0;
   for(const s of normWithR){
     if (Math.abs(s.x) + s.rN > 0 && Math.abs(s.y) + s.rN > 0) {
@@ -604,10 +680,7 @@ function generateSpeakers() {
       maxScale = Math.min(maxScale, limitX, limitY);
     }
   }
-  
   const K = maxScale;
-  
-  // 이제 baseSpeakers는 항상 대칭의 기준면에만 생성됩니다.
   let baseSpeakers = [];
   normWithR.forEach((s, index) => {
     const rpx = (width/2) * K * s.rN;
@@ -616,46 +689,19 @@ function generateSpeakers() {
     const typeFn = pool[index % pool.length];
     baseSpeakers.push({x: cx, y: cy, r: rpx, type: typeFn});
   });
-
-  // --- 💡 [최종 수정 2] 보다 안정적인 대칭 적용 로직 💡 ---
-  
-  let finalSpeakers = [...baseSpeakers]; // 최종 스피커 목록은 원본(마스터 패턴)으로 시작
-
+  let finalSpeakers = [...baseSpeakers];
   if (verticalSym && horizontalSym) {
-      // baseSpeakers는 '좌측 상단' 패턴입니다.
-      // 1. 아래쪽으로 대칭 복사 (좌측 하단 생성)
-      const southMirrors = baseSpeakers
-          .filter(s => Math.abs(s.y - height / 2) > 1)
-          .map(s => ({ ...s, y: height - s.y }));
-      
-      // 2. 원본(좌측 상단)을 오른쪽으로 대칭 복사 (우측 상단 생성)
-      const eastMirrors = baseSpeakers
-          .filter(s => Math.abs(s.x - width / 2) > 1)
-          .map(s => ({ ...s, x: width - s.x }));
-
-      // 3. 1번에서 만든 좌측 하단을 오른쪽으로 대칭 복사 (우측 하단 생성)
-      const southEastMirrors = southMirrors
-          .filter(s => Math.abs(s.x - width / 2) > 1)
-          .map(s => ({ ...s, x: width - s.x }));
-
-      // 4. 계산된 모든 대칭 복사본을 최종 목록에 추가
+      const southMirrors = baseSpeakers.filter(s => Math.abs(s.y - height / 2) > 1).map(s => ({ ...s, y: height - s.y }));
+      const eastMirrors = baseSpeakers.filter(s => Math.abs(s.x - width / 2) > 1).map(s => ({ ...s, x: width - s.x }));
+      const southEastMirrors = southMirrors.filter(s => Math.abs(s.x - width / 2) > 1).map(s => ({ ...s, x: width - s.x }));
       finalSpeakers.push(...southMirrors, ...eastMirrors, ...southEastMirrors);
-
   } else if (verticalSym) {
-      // baseSpeakers는 '왼쪽' 패턴입니다. 오른쪽으로 대칭 복사합니다.
-      const eastMirrors = baseSpeakers
-          .filter(s => Math.abs(s.x - width / 2) > 1)
-          .map(s => ({ ...s, x: width - s.x }));
+      const eastMirrors = baseSpeakers.filter(s => Math.abs(s.x - width / 2) > 1).map(s => ({ ...s, x: width - s.x }));
       finalSpeakers.push(...eastMirrors);
-
   } else if (horizontalSym) {
-      // baseSpeakers는 '위쪽' 패턴입니다. 아래쪽으로 대칭 복사합니다.
-      const southMirrors = baseSpeakers
-          .filter(s => Math.abs(s.y - height / 2) > 1)
-          .map(s => ({ ...s, y: height - s.y }));
+      const southMirrors = baseSpeakers.filter(s => Math.abs(s.y - height / 2) > 1).map(s => ({ ...s, y: height - s.y }));
       finalSpeakers.push(...southMirrors);
   }
-  
   speakerData = finalSpeakers;
 }
 
@@ -667,7 +713,6 @@ function renderSpeakers() {
     }
 }
 
-// Fisher-Yates shuffle
 function shuffle(array) {
   let currentIndex = array.length, randomIndex;
   const newArray = [...array];
