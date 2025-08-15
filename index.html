@@ -481,10 +481,8 @@ function updateCanvasSize() {
   let size;
 
   if (window.innerWidth < 768) {
-    // 모바일: 캔버스 너비를 컨테이너에 정확히 맞춤
     size = stageWidth;
   } else {
-    // 데스크톱: 기존 로직 유지 (세로 길이도 고려)
     const stageHeight = windowHeight;
     const padding = 48;
     size = Math.max(200, Math.min(stageWidth, stageHeight) - padding);
@@ -692,9 +690,79 @@ function buildTypeIcons(){
   updateTypeIconSelection();
 }
 function updateTypeIconSelection(){ const icons = Array.from(document.querySelectorAll('#typeIcons .type-icon')); icons.forEach(el=> el.classList.remove('is-selected')); if(selectedTypeIndex>=0){ const el = icons[selectedTypeIndex]; if(el) el.classList.add('is-selected'); } }
-function mousePressed(){ if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) { return; } if (isCustomizeMode) { for (let i = speakerData.length - 1; i >= 0; i--) { const s = speakerData[i]; if (dist(mouseX, mouseY, s.x, s.y) < s.r) { draggedSpeaker = s; dragOffsetX = mouseX - s.x; dragOffsetY = mouseY - s.y; p5Canvas.elt.style.cursor = 'grabbing'; return; } } } }
-function mouseDragged() { if (draggedSpeaker) { draggedSpeaker.x = mouseX - dragOffsetX; draggedSpeaker.y = mouseY - dragOffsetY; redraw(); } }
-function mouseReleased() { if (draggedSpeaker) { draggedSpeaker = null; p5Canvas.elt.style.cursor = 'grab'; } }
+
+// --- 마우스 및 터치 이벤트 핸들러 (수정 및 추가된 부분) ---
+
+function mousePressed(){ 
+  if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) { return; } 
+  if (isCustomizeMode) { 
+    for (let i = speakerData.length - 1; i >= 0; i--) { 
+      const s = speakerData[i]; 
+      if (dist(mouseX, mouseY, s.x, s.y) < s.r) { 
+        draggedSpeaker = s; 
+        dragOffsetX = mouseX - s.x; 
+        dragOffsetY = mouseY - s.y; 
+        p5Canvas.elt.style.cursor = 'grabbing';
+        // 햅틱 피드백 추가
+        if (navigator.vibrate) {
+          navigator.vibrate(50); // 50ms 짧은 진동
+        }
+        return; 
+      } 
+    } 
+  } 
+}
+
+function mouseDragged() { 
+  if (draggedSpeaker) { 
+    draggedSpeaker.x = mouseX - dragOffsetX; 
+    draggedSpeaker.y = mouseY - dragOffsetY; 
+    redraw(); 
+  } 
+}
+
+function mouseReleased() { 
+  if (draggedSpeaker) { 
+    draggedSpeaker = null; 
+    p5Canvas.elt.style.cursor = 'grab'; 
+  } 
+}
+
+// 모바일 터치 이벤트를 위한 함수들 추가
+function touchStarted() {
+  if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) { return; }
+  if (isCustomizeMode) {
+    for (let i = speakerData.length - 1; i >= 0; i--) {
+      const s = speakerData[i];
+      if (dist(mouseX, mouseY, s.x, s.y) < s.r) {
+        draggedSpeaker = s;
+        dragOffsetX = mouseX - s.x;
+        dragOffsetY = mouseY - s.y;
+        // 햅틱 피드백 추가
+        if (navigator.vibrate) {
+          navigator.vibrate(50); // 50ms 짧은 진동
+        }
+        return false; // 페이지 스크롤 방지
+      }
+    }
+  }
+}
+
+function touchMoved() {
+  if (draggedSpeaker) {
+    draggedSpeaker.x = mouseX - dragOffsetX;
+    draggedSpeaker.y = mouseY - dragOffsetY;
+    redraw();
+    return false; // 페이지 스크롤 방지
+  }
+}
+
+function touchEnded() {
+  if (draggedSpeaker) {
+    draggedSpeaker = null;
+  }
+}
+
 function keyPressed(){ if(key==='S'||key==='s'){ document.getElementById('save').click(); } else if(key==='R'||key==='r'){ document.getElementById('randomize').click(); } else if(key==='C'||key==='c'){ document.getElementById('customize').click(); } }
 
 function draw(){
@@ -845,3 +913,6 @@ function paletteFromKey(key){ const k = color(key); const ringDark = lerpColor(c
 </script>
 </body>
 </html>
+이 코드에서 glyph-premium 의 스타일 코드를 지우고, Type 13 을 Type 1 과 동일한 모양으로 만들어줘. 
+
+그리고 모바일 버전에서 Customize 버튼을 누르고 스피커를 드래그해서 위치를 변경하고 다시 Customize 버튼을 누르면 스피커들이 원래 위치로 돌아가도록 리셋 기능을 추가해줄수있니?
